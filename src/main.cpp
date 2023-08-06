@@ -6,10 +6,12 @@
 #include <Windows.h>
 #include <glm/glm.hpp>
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
 
 int scale = 1;
 Framebuffer framebuffer = Framebuffer(100, 100);
 std::vector<glm::vec3> vertexList;
+float rotationAngle = glm::radians(0.0f); // Change the angle as needed
 
 void printVertex(glm::vec3 vertex)
 {
@@ -18,14 +20,20 @@ void printVertex(glm::vec3 vertex)
 
 void drawModel()
 {
+  glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), rotationAngle+=0.01, glm::vec3(0.0f, 1.0f, 0.0f));
+
   for (int i = 2; i < vertexList.size(); i += 3)
   {
-    framebuffer.triangle(vertexList[i - 2], vertexList[i - 1], vertexList[i]);
+    glm::vec4 rotatedVertex1 = rotationMatrix * glm::vec4(vertexList[i-2], 1.0f);
+    glm::vec4 rotatedVertex2 = rotationMatrix * glm::vec4(vertexList[i-1], 1.0f);
+    glm::vec4 rotatedVertex3 = rotationMatrix * glm::vec4(vertexList[i], 1.0f);
+    framebuffer.triangle(glm::vec3(rotatedVertex1), glm::vec3(rotatedVertex2), glm::vec3(rotatedVertex3));
   }
 }
 
 void render(SDL_Renderer *renderer)
 {
+  framebuffer.clear();
   drawModel();
   renderBuffer(renderer, framebuffer);
 }
@@ -64,7 +72,7 @@ int main(int argv, char **args)
     render(renderer);
 
     SDL_RenderPresent(renderer);
-    SDL_Delay(100);
+    SDL_Delay(1);
   }
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
